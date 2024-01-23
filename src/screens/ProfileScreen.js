@@ -1,31 +1,71 @@
-// ProfileScreen.js
-import React, { useState } from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
-import { Button } from "react-native-paper";
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
+import { Avatar, Button } from "react-native-paper";
+import * as ImagePicker from "expo-image-picker";
 
-const ProfileScreen = ({ navigation, route }) => {
-  const { name, course, schoolYear, image } = route.params;
+const ProfileScreen = () => {
+  const [profileImage, setProfileImage] = useState(null);
+  const [coverPhoto, setCoverPhoto] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        console.error("Permission to access media library was denied");
+      }
+    })();
+  }, []);
+
+  const pickImage = async (type) => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      if (type === "profile") {
+        setProfileImage(result.uri);
+      } else if (type === "cover") {
+        setCoverPhoto(result.uri);
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {image && <Image source={{ uri: image }} style={styles.profileImage} />}
-      <Text style={styles.text}>Name: {name}</Text>
-      <Text style={styles.text}>Course: {course}</Text>
-      <Text style={styles.text}>School Year: {schoolYear}</Text>
-      <Button
-        mode="contained"
-        onPress={() =>
-          navigation.navigate("EditProfile", {
-            name,
-            course,
-            schoolYear,
-            image,
-          })
-        }
-        style={styles.editButton}
-      >
-        Edit Profile
-      </Button>
+      <View style={styles.coverContainer}>
+        <Image style={styles.coverPhoto} source={{ uri: coverPhoto }} />
+        <TouchableOpacity
+          style={styles.editCoverButton}
+          onPress={() => pickImage("cover")}
+        >
+          <Text style={styles.editCoverText}>Change Cover Photo</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.profileContainer}>
+        <TouchableOpacity
+          style={styles.editProfileButton}
+          onPress={() => pickImage("profile")}
+        >
+          <Avatar.Image size={100} source={{ uri: profileImage }} />
+          <Text style={styles.editProfileText}>Change Profile Picture</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.username}>Your Username</Text>
+        <Text style={styles.bio}>A brief bio about yourself...</Text>
+
+        <Button
+          mode="contained"
+          onPress={() => console.log("Save button pressed")}
+          style={styles.saveButton}
+        >
+          Save
+        </Button>
+      </View>
     </View>
   );
 };
@@ -33,22 +73,55 @@ const ProfileScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
+    backgroundColor: "#f0f0f0",
   },
-  profileImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+  coverContainer: {
+    position: "relative",
+    height: 200,
     marginBottom: 16,
   },
-  text: {
-    fontSize: 16,
+  coverPhoto: {
+    flex: 1,
+    resizeMode: "cover",
     marginBottom: 8,
   },
-  editButton: {
-    marginTop: 20,
+  editCoverButton: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    backgroundColor: "rgba(255,255,255,0.7)",
+    padding: 8,
+    borderRadius: 5,
+  },
+  editCoverText: {
+    color: "#333",
+  },
+  profileContainer: {
+    padding: 16,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    elevation: 3,
+  },
+  editProfileButton: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  editProfileText: {
+    marginTop: 8,
+    color: "#555",
+  },
+  username: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  bio: {
+    color: "#555",
+    marginBottom: 16,
+  },
+  saveButton: {
+    marginTop: 8,
+    backgroundColor: "#1e88e5", // Customize the color based on your design
   },
 });
 

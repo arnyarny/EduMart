@@ -9,7 +9,6 @@ import SignUpScreen from "./src/screens/SignUpScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import AddItemScreen from "./src/screens/AddItemScreen";
-import EditProfileScreen from "./src/screens/EditProfileScreen";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 const Stack = createNativeStackNavigator();
