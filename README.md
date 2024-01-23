@@ -1,2 +1,2 @@
 # EduMart
-app
+app tech titan
