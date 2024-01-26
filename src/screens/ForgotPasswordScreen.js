@@ -1,40 +1,33 @@
-// LoginScreen.js
 import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
+  Alert,
   ImageBackground,
+  StyleSheet,
   TouchableOpacity,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { TextInput, Button, ActivityIndicator } from "react-native-paper";
-import { handleLogin } from "../../authFunctions";
+import { handleForgotPassword } from "../../authFunctions"; // Import the function
 
-const LoginScreen = ({ navigation }) => {
+const ForgotPasswordScreen = ({ navigation }) => {
+  const [email, setEmail] = useState("");
+
   const handleGoBack = () => {
     navigation.goBack();
   };
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const handleNavForgotPasswordScreen = () => {
-    navigation.navigate("ForgotPassword"); // Navigate to your ForgotPasswordScreen
-  };
-
-  const handleLoginPress = async () => {
-    setLoading(true);
+  const handleResetPassword = async () => {
     try {
-      const user = await handleLogin(email, password);
-      console.log("User details:", user);
-      navigation.navigate("MainTabs");
+      await handleForgotPassword(email);
+      Alert.alert(
+        "Password Reset Email Sent",
+        "Check your email to reset your password."
+      );
+      navigation.goBack(); // Navigate back to the login or previous screen
     } catch (error) {
-      setError("Login failed. Please try again.");
-    } finally {
-      setLoading(false);
+      Alert.alert("Error", error.message);
     }
   };
 
@@ -47,9 +40,10 @@ const LoginScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.arrow} onPress={handleGoBack}>
           <Ionicons name="arrow-back" size={30} color="#201b51" />
         </TouchableOpacity>
-        <Text style={styles.text}>Welcome Back!</Text>
+        <Text style={styles.text}>Forgot Password</Text>
+
         <TextInput
-          label="Email"
+          label="Enter your Email"
           value={email}
           onChangeText={(text) => setEmail(text)}
           style={styles.textInput}
@@ -59,31 +53,14 @@ const LoginScreen = ({ navigation }) => {
             },
           }}
         />
-        <TextInput
-          label="Password"
-          value={password}
-          onChangeText={(text) => setPassword(text)}
-          secureTextEntry
-          style={styles.textInput}
-          theme={{
-            colors: {
-              primary: "#201b51", // Change this to your desired color
-            },
-          }}
-        />
-        <TouchableOpacity onPress={handleNavForgotPasswordScreen}>
-          <Text style={styles.forgotPasswordText}>Forgot your password?</Text>
-        </TouchableOpacity>
         <Button
           style={styles.button}
           labelStyle={styles.buttonText}
           mode="contained"
-          onPress={handleLoginPress}
+          onPress={handleResetPassword}
         >
-          LOGIN
+          Reset Password
         </Button>
-        {loading && <ActivityIndicator size="small" color="#201b51" />}
-        {error && <Text style={{ color: "red" }}>{error}</Text>}
       </View>
     </ImageBackground>
   );
@@ -108,13 +85,13 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     width: 200,
   },
-  forgotPasswordText: {
+  text: {
+    fontSize: 40,
+    marginBottom: 10,
+    paddingTop: 290,
     color: "#201b51",
-    textAlign: "right",
-
-    marginBottom: 16,
-    fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "900",
+    width: 200,
   },
   textInput: {
     marginBottom: 16,
@@ -129,4 +106,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default ForgotPasswordScreen;

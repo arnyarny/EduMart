@@ -2,9 +2,23 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
 } from "firebase/auth";
 import { auth } from "./firebase";
+import { ref, set } from "firebase/database";
+
+import { database } from "./firebase";
+
+const handleForgotPassword = async (email) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    console.log("Password reset email sent successfully");
+  } catch (error) {
+    console.error("Password reset failed:", error.message);
+    throw error;
+  }
+};
 
 const handleSignUp = async (email, password) => {
   try {
@@ -13,7 +27,15 @@ const handleSignUp = async (email, password) => {
       email,
       password
     );
+
     const user = userCredential.user;
+
+    // Store user details in the Realtime Database
+    const userRef = ref(database, `users/${user.uid}`);
+    await set(userRef, {
+      email,
+    });
+
     console.log("User registered:", user);
     return user;
   } catch (error) {
@@ -48,4 +70,4 @@ const handleLogout = async () => {
   }
 };
 
-export { handleSignUp, handleLogin, handleLogout };
+export { handleSignUp, handleLogin, handleForgotPassword, handleLogout };

@@ -9,7 +9,9 @@ import SignUpScreen from "./src/screens/SignUpScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import AddItemScreen from "./src/screens/AddItemScreen";
+import ItemScreen from "./src/screens/ItemScreen";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -19,6 +21,14 @@ const AuthStack = () => (
     <Stack.Screen name="Welcome" component={WelcomeScreen} />
     <Stack.Screen name="SignUp" component={SignUpScreen} />
     <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+  </Stack.Navigator>
+);
+
+const HomeStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="HomeScreen" component={HomeScreen} />
+    <Stack.Screen name="ItemScreen" component={ItemScreen} />
   </Stack.Navigator>
 );
 
@@ -28,21 +38,21 @@ const MainTabNavigator = () => (
       tabBarIcon: ({ color, size }) => {
         let iconName;
 
-        if (route.name === "Home") {
+        if (route.name === "HomeTab") {
           iconName = "home-outline";
-        } else if (route.name === "AddItem") {
+        } else if (route.name === "AddItemTab") {
           iconName = "add-circle-outline";
-        } else if (route.name === "Profile") {
+        } else if (route.name === "ProfileTab") {
           iconName = "person-outline";
         }
 
         return <Ionicons name={iconName} size={size} color={color} />;
       },
       tabBarLabel: () => null,
-      tabBarActiveTintColor: "#3498db",
+      tabBarActiveTintColor: "#feb314",
       tabBarInactiveTintColor: "#95a5a6",
       tabBarStyle: {
-        backgroundColor: "#ecf0f1",
+        backgroundColor: "#201b51",
       },
       tabBarLabelStyle: {
         fontSize: 14,
@@ -51,19 +61,19 @@ const MainTabNavigator = () => (
     })}
   >
     <Tab.Screen
-      name="Home"
-      component={HomeScreen}
+      name="HomeTab"
+      component={HomeStack}
       options={{ headerShown: false }}
     />
     <Tab.Screen
-      name="AddItem"
+      name="AddItemTab"
       component={AddItemScreen}
       options={{
         headerShown: false,
       }}
     />
     <Tab.Screen
-      name="Profile"
+      name="ProfileTab"
       component={ProfileScreen}
       options={{
         headerShown: false,

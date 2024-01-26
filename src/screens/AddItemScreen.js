@@ -1,10 +1,24 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import { Button, TextInput as PaperTextInput } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
-import { ref, push, set, serverTimestamp } from "firebase/database";
-import { database } from "../../firebase";
 import RNPickerSelect from "react-native-picker-select";
+
+import {
+  ref as databaseRef,
+  push as pushToDatabase,
+  set,
+  serverTimestamp,
+} from "firebase/database";
+import { getDownloadURL, uploadBytes, ref } from "firebase/storage";
+import { storage, database } from "../../firebase";
 
 const AddItemScreen = () => {
   const [image, setImage] = useState(null);
@@ -12,6 +26,7 @@ const AddItemScreen = () => {
   const [itemDescription, setItemDescription] = useState("");
   const [itemCategory, setItemCategory] = useState(null);
   const [itemPrice, setItemPrice] = useState("");
+  const [facebookAccount, setFacebookAccount] = useState("");
 
   const placeholder = {
     label: "Select a category...",
@@ -38,33 +53,48 @@ const AddItemScreen = () => {
     }
   };
 
-  const handlePostItem = () => {
-    const itemsRef = ref(database, "items");
+  const handlePostItem = async () => {
+    try {
+      const storageRef = ref(storage, "images/" + Date.now() + ".jpg");
+      const imageBlob = await prepareBlob(image);
+      await uploadBytes(storageRef, imageBlob);
 
-    // Push item data to the 'items' collection in Firebase Realtime Database
-    const newItemRef = push(itemsRef);
+      const downloadURL = await getDownloadURL(storageRef);
 
-    // Set the data for the new item
-    set(newItemRef, {
-      image,
-      productName,
-      itemDescription,
-      itemCategory,
-      itemPrice,
-      timestamp: serverTimestamp(),
-    })
-      .then(() => {
-        console.log("Item posted successfully with key:", newItemRef.key);
-        // Optionally, you can reset the state after posting
-        setImage(null);
-        setProductName("");
-        setItemDescription("");
-        setItemCategory("");
-        setItemPrice("");
-      })
-      .catch((error) => {
-        console.error("Error posting item:", error);
+      const itemsRef = databaseRef(database, "items");
+
+      // Push item data to the 'items' collection in Firebase Realtime Database
+      const newItemRef = pushToDatabase(itemsRef);
+
+      // Set the data for the new item
+      set(newItemRef, {
+        image: downloadURL,
+        productName,
+        itemDescription,
+        itemCategory,
+        itemPrice,
+        facebookAccount,
+        timestamp: serverTimestamp(),
       });
+
+      console.log("Item posted successfully with key:", newItemRef.key);
+
+      // Optionally, you can reset the state after posting
+      setImage(null);
+      setProductName("");
+      setItemDescription("");
+      setItemCategory("");
+      setItemPrice("");
+      setFacebookAccount("");
+    } catch (error) {
+      console.error("Error posting item:", error);
+    }
+  };
+
+  const prepareBlob = async (uri) => {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    return blob;
   };
 
   return (
@@ -76,6 +106,13 @@ const AddItemScreen = () => {
           <Text style={styles.imagePickerText}>Select Image</Text>
         )}
       </TouchableOpacity>
+      <RNPickerSelect
+        placeholder={placeholder}
+        items={items}
+        onValueChange={(value) => setItemCategory(value)}
+        style={pickerSelectStyles}
+        value={itemCategory}
+      />
       <PaperTextInput
         label="Product Name"
         value={productName}
@@ -89,18 +126,17 @@ const AddItemScreen = () => {
         style={styles.input}
         multiline
       />
-      <RNPickerSelect
-        placeholder={placeholder}
-        items={items}
-        onValueChange={(value) => setItemCategory(value)}
-        style={pickerSelectStyles}
-        value={itemCategory}
-      />
       <PaperTextInput
         label="Item Price"
         value={itemPrice}
         onChangeText={setItemPrice}
         keyboardType="numeric"
+        style={styles.input}
+      />
+      <PaperTextInput
+        label="Facebook Account"
+        value={facebookAccount}
+        onChangeText={setFacebookAccount}
         style={styles.input}
       />
       <Button
@@ -138,20 +174,23 @@ const styles = StyleSheet.create({
   },
   imagePickerText: {
     fontSize: 16,
-    color: "#3498db",
+    color: "#201b51",
   },
   input: {
     marginBottom: 16,
     backgroundColor: "#ecf0f1",
   },
   postButton: {
-    backgroundColor: "#27ae60",
+    backgroundColor: "#201b51",
     paddingVertical: 12,
     borderRadius: 8,
   },
   buttonText: {
     color: "#fff",
     fontWeight: "bold",
+  },
+  textInputText: {
+    color: "red",
   },
 });
 
