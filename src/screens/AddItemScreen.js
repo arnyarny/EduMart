@@ -18,7 +18,7 @@ import {
   serverTimestamp,
 } from "firebase/database";
 import { getDownloadURL, uploadBytes, ref } from "firebase/storage";
-import { storage, database } from "../../firebase";
+import { storage, database, auth } from "../../firebase";
 
 const AddItemScreen = () => {
   const [image, setImage] = useState(null);
@@ -27,6 +27,7 @@ const AddItemScreen = () => {
   const [itemCategory, setItemCategory] = useState(null);
   const [itemPrice, setItemPrice] = useState("");
   const [facebookAccount, setFacebookAccount] = useState("");
+  const [loading, setLoading] = useState(false); // Added loading state
 
   const placeholder = {
     label: "Select a category...",
@@ -38,6 +39,8 @@ const AddItemScreen = () => {
     { label: "Uniforms", value: "uniforms" },
     { label: "Gadgets", value: "gadgets" },
     { label: "Art Materials", value: "artMaterials" },
+    { label: "School Supplies", value: "schoolSupplies" },
+    { label: "Shoes", value: "shoes" },
   ];
 
   const pickImage = async () => {
@@ -55,6 +58,7 @@ const AddItemScreen = () => {
 
   const handlePostItem = async () => {
     try {
+      setLoading(true); // Set loading to true when starting the post process
       const storageRef = ref(storage, "images/" + Date.now() + ".jpg");
       const imageBlob = await prepareBlob(image);
       await uploadBytes(storageRef, imageBlob);
@@ -63,10 +67,11 @@ const AddItemScreen = () => {
 
       const itemsRef = databaseRef(database, "items");
 
-      // Push item data to the 'items' collection in Firebase Realtime Database
+      // Get the current user from Firebase Authentication
+      const currentUser = auth.currentUser;
+
       const newItemRef = pushToDatabase(itemsRef);
 
-      // Set the data for the new item
       set(newItemRef, {
         image: downloadURL,
         productName,
@@ -74,6 +79,7 @@ const AddItemScreen = () => {
         itemCategory,
         itemPrice,
         facebookAccount,
+        userId: currentUser.uid,
         timestamp: serverTimestamp(),
       });
 
@@ -88,6 +94,8 @@ const AddItemScreen = () => {
       setFacebookAccount("");
     } catch (error) {
       console.error("Error posting item:", error);
+    } finally {
+      setLoading(false); // Set loading to false when post process is complete (success or error)
     }
   };
 
@@ -118,6 +126,8 @@ const AddItemScreen = () => {
         value={productName}
         onChangeText={setProductName}
         style={styles.input}
+        underlineColor="#201b51" // Add this prop
+        theme={{ colors: { primary: "#201b51" } }} // Add this prop for Android
       />
       <PaperTextInput
         label="Item Description"
@@ -125,6 +135,8 @@ const AddItemScreen = () => {
         onChangeText={setItemDescription}
         style={styles.input}
         multiline
+        underlineColor="#201b51" // Add this prop
+        theme={{ colors: { primary: "#201b51" } }} // Add this prop for Android
       />
       <PaperTextInput
         label="Item Price"
@@ -132,12 +144,16 @@ const AddItemScreen = () => {
         onChangeText={setItemPrice}
         keyboardType="numeric"
         style={styles.input}
+        underlineColor="#201b51" // Add this prop
+        theme={{ colors: { primary: "#201b51" } }} // Add this prop for Android
       />
       <PaperTextInput
         label="Facebook Account"
         value={facebookAccount}
         onChangeText={setFacebookAccount}
         style={styles.input}
+        underlineColor="#201b51" // Add this prop
+        theme={{ colors: { primary: "#201b51" } }} // Add this prop for Android
       />
       <Button
         mode="contained"
@@ -145,7 +161,11 @@ const AddItemScreen = () => {
         style={styles.postButton}
         labelStyle={styles.buttonText}
       >
-        Post Item
+        {loading ? ( // Show the activity indicator if loading is true
+          <ActivityIndicator color="#fff" />
+        ) : (
+          "POST ITEM"
+        )}
       </Button>
     </View>
   );
@@ -154,7 +174,7 @@ const AddItemScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 40,
+    paddingHorizontal: 30,
     backgroundColor: "#ffffff",
   },
   imageContainer: {
@@ -162,7 +182,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     height: 200,
     backgroundColor: "#f0f0f0",
-    marginBottom: 16,
+    marginVertical: 16,
     borderRadius: 8,
     overflow: "hidden",
   },
@@ -178,19 +198,17 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 16,
-    backgroundColor: "#ecf0f1",
+    backgroundColor: "#fff",
   },
   postButton: {
-    backgroundColor: "#201b51",
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: "#feb314",
+    paddingVertical: 4,
+    borderRadius: 10,
   },
   buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  textInputText: {
-    color: "red",
+    color: "#000", // Font color set to black
+    fontWeight: "600",
+    fontSize: 16, // Font size set to 20
   },
 });
 

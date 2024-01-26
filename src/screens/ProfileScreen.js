@@ -1,71 +1,130 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
-import { Avatar, Button } from "react-native-paper";
-import * as ImagePicker from "expo-image-picker";
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  Text,
+} from "react-native";
+import { Searchbar, Card, Title, Paragraph } from "react-native-paper";
+import { ref, onValue, orderByChild, equalTo } from "firebase/database";
+import { auth, database } from "../../firebase";
 
-const ProfileScreen = () => {
-  const [profileImage, setProfileImage] = useState(null);
-  const [coverPhoto, setCoverPhoto] = useState(null);
+const ProfileScreen = ({ navigation }) => {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredItems, setFilteredItems] = useState([]);
 
   useEffect(() => {
-    (async () => {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        console.error("Permission to access media library was denied");
-      }
-    })();
-  }, []);
+    const user = auth().currentUser;
+    const itemsRef = ref(database, "items"); // Explicitly create a reference to "items" node in the database
 
-  const pickImage = async (type) => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+    const fetchItems = async () => {
+      try {
+        // Query to get the current user's posted items
+        const userItemsRef = orderByChild(itemsRef, "userId").equalTo(
+          user.uid,
+          "userId"
+        );
 
-    if (!result.canceled) {
-      if (type === "profile") {
-        setProfileImage(result.uri);
-      } else if (type === "cover") {
-        setCoverPhoto(result.uri);
+        onValue(userItemsRef, (snapshot) => {
+          if (snapshot.exists()) {
+            const itemsData = snapshot.val();
+            const itemsArray = Object.entries(itemsData).map(
+              ([key, value]) => ({
+                key,
+                ...value,
+              })
+            );
+            setItems(itemsArray);
+            filterItems(searchQuery, itemsArray);
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching items:", error);
+        setError("Error fetching items");
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    fetchItems();
+  }, [searchQuery]);
+
+  const filterItems = (query, itemsArray) => {
+    const lowerCaseQuery = query.toLowerCase();
+    const filtered = itemsArray.filter(
+      (item) =>
+        (item.productName &&
+          item.productName.toLowerCase().includes(lowerCaseQuery)) ||
+        (item.itemCategory &&
+          item.itemCategory.toLowerCase().includes(lowerCaseQuery))
+    );
+    setFilteredItems(filtered);
   };
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    filterItems(query, items);
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <View style={styles.coverContainer}>
-        <Image style={styles.coverPhoto} source={{ uri: coverPhoto }} />
-        <TouchableOpacity
-          style={styles.editCoverButton}
-          onPress={() => pickImage("cover")}
-        >
-          <Text style={styles.editCoverText}>Change Cover Photo</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.profileContainer}>
-        <TouchableOpacity
-          style={styles.editProfileButton}
-          onPress={() => pickImage("profile")}
-        >
-          <Avatar.Image size={100} source={{ uri: profileImage }} />
-          <Text style={styles.editProfileText}>Change Profile Picture</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.username}>Your Username</Text>
-        <Text style={styles.bio}>A brief bio about yourself...</Text>
-
-        <Button
-          mode="contained"
-          onPress={() => console.log("Save button pressed")}
-          style={styles.saveButton}
-        >
-          Save
-        </Button>
-      </View>
+      <Title style={styles.title}>Hello Trailblazer!</Title>
+      <Paragraph>Let's start shopping</Paragraph>
+      <Searchbar
+        placeholder="Search items..."
+        onChangeText={handleSearch}
+        onCancel={() => handleSearch("")}
+        value={searchQuery}
+        style={styles.searchBar}
+      />
+      <FlatList
+        data={searchQuery ? filteredItems : items}
+        keyExtractor={(item) => item.key}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("ItemScreen", { itemKey: item.key })
+            }
+          >
+            <Card style={styles.card}>
+              <Card.Cover source={{ uri: item.image }} />
+              <Card.Content>
+                <Title
+                  style={{
+                    fontWeight: "700",
+                    paddingTop: 10,
+                    color: "#201b51",
+                  }}
+                >
+                  {"₱ " + item.itemPrice}
+                </Title>
+                <Paragraph>{item.productName}</Paragraph>
+              </Card.Content>
+            </Card>
+          </TouchableOpacity>
+        )}
+      />
     </View>
   );
 };
@@ -73,55 +132,33 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 40,
+    backgroundColor: "#f5f5f5",
+  },
+  title: {
+    fontSize: 30,
+    fontWeight: 700,
+    paddingTop: 30,
+    color: "#000",
+  },
+  searchBar: {
+    marginVertical: 16,
+    backgroundColor: "#ffca4a",
+  },
+  card: {
+    marginBottom: 16,
     backgroundColor: "#f0f0f0",
   },
-  coverContainer: {
-    position: "relative",
-    height: 200,
-    marginBottom: 16,
-  },
-  coverPhoto: {
+  loadingContainer: {
     flex: 1,
-    resizeMode: "cover",
-    marginBottom: 8,
-  },
-  editCoverButton: {
-    position: "absolute",
-    bottom: 10,
-    right: 10,
-    backgroundColor: "rgba(255,255,255,0.7)",
-    padding: 8,
-    borderRadius: 5,
-  },
-  editCoverText: {
-    color: "#333",
-  },
-  profileContainer: {
-    padding: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    elevation: 3,
-  },
-  editProfileButton: {
+    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
   },
-  editProfileText: {
-    marginTop: 8,
-    color: "#555",
-  },
-  username: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  bio: {
-    color: "#555",
-    marginBottom: 16,
-  },
-  saveButton: {
-    marginTop: 8,
-    backgroundColor: "#1e88e5", // Customize the color based on your design
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#ffcccc",
   },
 });
 

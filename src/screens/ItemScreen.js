@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import {
   ActivityIndicator,
   IconButton,
   Title,
   Paragraph,
+  Card,
 } from "react-native-paper";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 import { ref, get, getDatabase } from "firebase/database";
-import { database } from "../../firebase";
 
 const ItemScreen = ({ route, navigation }) => {
   const handleGoBack = () => {
@@ -26,7 +26,7 @@ const ItemScreen = ({ route, navigation }) => {
       const { itemKey } = route.params;
       console.log("Fetching details for itemKey:", itemKey);
 
-      const itemRef = ref(database, `items/${itemKey}`);
+      const itemRef = ref(db, `items/${itemKey}`);
 
       try {
         const itemSnapshot = await get(itemRef);
@@ -47,11 +47,6 @@ const ItemScreen = ({ route, navigation }) => {
     };
 
     fetchItemDetails();
-
-    // Cleanup function to cancel the fetch if the component unmounts
-    return () => {
-      setItem(null); // Clear the state to avoid a memory leak
-    };
   }, [route.params]);
 
   if (loading) {
@@ -79,8 +74,10 @@ const ItemScreen = ({ route, navigation }) => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Image source={{ uri: item.image }} style={styles.image} />
+    <View style={styles.container}>
+      <Card style={styles.card}>
+        <Card.Cover source={{ uri: item.image }} style={styles.image} />
+      </Card>
       <IconButton
         style={styles.arrow}
         icon="arrow-left"
@@ -89,12 +86,12 @@ const ItemScreen = ({ route, navigation }) => {
         onPress={handleGoBack}
       />
       <View style={styles.detailsContainer}>
+        <Text style={styles.price}>{`₱ ${item.itemPrice}`}</Text>
         <Title style={styles.productName}>{item.productName}</Title>
-        <Paragraph style={styles.category}>
-          Category: {item.itemCategory}
-        </Paragraph>
-        <Paragraph style={styles.price}>{"PHP " + item.itemPrice}</Paragraph>
-        <Paragraph style={styles.description}>{item.itemDescription}</Paragraph>
+        <Paragraph style={styles.category}>{item.itemCategory}</Paragraph>
+        <Paragraph
+          style={styles.description}
+        >{`Description: \n \n ${item.itemDescription}`}</Paragraph>
         {item.facebookAccount && (
           <View style={styles.facebookContainer}>
             <Ionicons name="logo-facebook" size={20} color="#4267B2" />
@@ -104,7 +101,7 @@ const ItemScreen = ({ route, navigation }) => {
           </View>
         )}
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
@@ -113,9 +110,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  card: {
+    width: 235,
+    height: 305,
+    borderRadius: 8,
+    overflow: "hidden",
+    alignSelf: "center",
+    marginTop: 60,
+  },
   arrow: {
     position: "absolute",
-    top: 30,
+    top: 50,
     left: 10,
     zIndex: 1,
   },
@@ -132,31 +137,40 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: 300, // Adjust the height as needed
+    height: "100%",
     resizeMode: "cover",
   },
   detailsContainer: {
     padding: 20,
   },
+  price: {
+    fontSize: 30,
+    fontWeight: "700",
+    color: "#201b51",
+    marginBottom: 8,
+  },
   productName: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "500",
     marginBottom: 8,
     color: "#333",
   },
-  price: {
-    fontSize: 18,
-    color: "green",
+  category: {
+    fontSize: 13,
+    fontWeight: 600,
+    color: "black",
     marginBottom: 8,
+    borderRadius: 30,
+    backgroundColor: "#f0f0f0",
+    paddingHorizontal: 10, // Add padding for better appearance
+    paddingVertical: 5,
+    maxWidth: 300,
+    alignSelf: "baseline",
   },
   description: {
-    fontSize: 16,
+    fontSize: 14,
     marginBottom: 8,
     color: "#555",
-  },
-  category: {
-    fontSize: 16,
-    color: "blue",
   },
   facebookContainer: {
     flexDirection: "row",

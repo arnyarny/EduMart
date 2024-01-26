@@ -4,6 +4,7 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  ScrollView,
   ActivityIndicator,
   Text,
 } from "react-native";
@@ -17,6 +18,7 @@ const Homescreen = ({ navigation }) => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredItems, setFilteredItems] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     const itemsRef = ref(database, "items");
@@ -33,6 +35,7 @@ const Homescreen = ({ navigation }) => {
               })
             );
             setItems(itemsArray);
+            setCategories(getUniqueCategories(itemsArray));
             filterItems(searchQuery, itemsArray);
           }
         });
@@ -46,6 +49,16 @@ const Homescreen = ({ navigation }) => {
 
     fetchItems();
   }, [searchQuery]);
+
+  const getUniqueCategories = (itemsArray) => {
+    const allCategories = itemsArray.flatMap((item) => item.itemCategory);
+    return [...new Set(allCategories)];
+  };
+
+  const handleCategoryPress = (category) => {
+    setSearchQuery(category);
+    filterItems(category, items);
+  };
 
   const filterItems = (query, itemsArray) => {
     const lowerCaseQuery = query.toLowerCase();
@@ -91,9 +104,26 @@ const Homescreen = ({ navigation }) => {
         value={searchQuery}
         style={styles.searchBar}
       />
+      <View style={styles.scrollContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriesContainer}
+        >
+          {categories.map((category, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => handleCategoryPress(category)}
+              style={styles.categoryButton}
+            >
+              <Text>{category}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
       <FlatList
         data={searchQuery ? filteredItems : items}
-        keyExtractor={(item) => item.key} // Assuming 'key' is the property containing the Firebase-generated key
+        keyExtractor={(item) => item.key}
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() =>
@@ -103,8 +133,16 @@ const Homescreen = ({ navigation }) => {
             <Card style={styles.card}>
               <Card.Cover source={{ uri: item.image }} />
               <Card.Content>
-                <Title>{item.productName}</Title>
-                <Paragraph>{"PHP " + item.itemPrice}</Paragraph>
+                <Title
+                  style={{
+                    fontWeight: "700",
+                    paddingTop: 10,
+                    color: "#201b51",
+                  }}
+                >
+                  {"₱ " + item.itemPrice}
+                </Title>
+                <Paragraph>{item.productName}</Paragraph>
               </Card.Content>
             </Card>
           </TouchableOpacity>
@@ -117,20 +155,26 @@ const Homescreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 40,
+    paddingHorizontal: 40,
+    paddingTop: 30,
     backgroundColor: "#f5f5f5",
   },
   title: {
     fontSize: 30,
-    fontWeight: 700,
+    fontWeight: "700",
     paddingTop: 30,
-    color: "#000",
+    color: "#201b51",
   },
   searchBar: {
     marginVertical: 16,
+    backgroundColor: "#feb314",
   },
   card: {
     marginBottom: 16,
+    backgroundColor: "#f0f0f0",
+  },
+  scrollContainer: {
+    padding: 5,
   },
   loadingContainer: {
     flex: 1,
@@ -142,6 +186,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#ffcccc",
+  },
+  categoriesContainer: {
+    marginBottom: 50,
+    flexDirection: "row",
+  },
+  categoryButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginHorizontal: 4,
+    borderRadius: 8,
+    backgroundColor: "#e0e0e0",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 
