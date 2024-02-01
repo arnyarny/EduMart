@@ -35,12 +35,12 @@ const AddItemScreen = () => {
   };
 
   const items = [
-    { label: "Books", value: "books" },
-    { label: "Uniforms", value: "uniforms" },
-    { label: "Gadgets", value: "gadgets" },
-    { label: "Art Materials", value: "artMaterials" },
-    { label: "School Supplies", value: "schoolSupplies" },
-    { label: "Shoes", value: "shoes" },
+    { label: "Books", value: "Books" },
+    { label: "Uniforms", value: "Uniforms" },
+    { label: "Gadgets", value: "Gadgets" },
+    { label: "Art Materials", value: "ArtMaterials" },
+    { label: "School Supplies", value: "SchoolSupplies" },
+    { label: "Shoes", value: "Shoes" },
   ];
 
   const pickImage = async () => {
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   postButton: {
     backgroundColor: "#feb314",
     paddingVertical: 4,
-    borderRadius: 10,
+    borderRadius: 30,
   },
   buttonText: {
     color: "#000", // Font color set to black

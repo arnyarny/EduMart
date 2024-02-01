@@ -18,13 +18,14 @@ const SignUpScreen = ({ navigation }) => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [studentNumber, setStudentNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSignUpPress = async () => {
     setLoading(true);
     try {
-      const user = await handleSignUp(email, password);
+      const user = await handleSignUp(email, password, studentNumber);
       console.log("User details:", user);
       navigation.navigate("Welcome");
     } catch (error) {
@@ -45,6 +46,18 @@ const SignUpScreen = ({ navigation }) => {
           <Ionicons name="arrow-back" size={30} color="#201b51" />
         </TouchableOpacity>
         <Text style={styles.text}>Create Account</Text>
+
+        <TextInput
+          label="Student Number"
+          value={studentNumber}
+          onChangeText={(text) => setStudentNumber(text)}
+          style={styles.textInput}
+          theme={{
+            colors: {
+              primary: "#201b51",
+            },
+          }}
+        />
 
         <TextInput
           label="Email"

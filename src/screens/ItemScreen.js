@@ -92,6 +92,7 @@ const ItemScreen = ({ route, navigation }) => {
         <Paragraph
           style={styles.description}
         >{`Description: \n \n ${item.itemDescription}`}</Paragraph>
+        <Text style={styles.messageText}>Message me here: </Text>
         {item.facebookAccount && (
           <View style={styles.facebookContainer}>
             <Ionicons name="logo-facebook" size={20} color="#4267B2" />
@@ -128,6 +129,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  messageText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginRight: 5, // Adjust the spacing as needed
   },
   errorContainer: {
     flex: 1,

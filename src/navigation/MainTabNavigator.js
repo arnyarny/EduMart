@@ -13,13 +13,16 @@ const MainTabNavigator = () => (
     screenOptions={({ route }) => ({
       tabBarIcon: ({ color, size }) => {
         let iconName;
+        let iconSize = 24;
 
         if (route.name === "HomeTab") {
           iconName = "home-outline";
+          iconSize = 28;
         } else if (route.name === "AddItemTab") {
           iconName = "add-circle-outline";
         } else if (route.name === "ProfileTab") {
           iconName = "person-outline";
+          iconSize = 28;
         }
 
         return <Ionicons name={iconName} size={size} color={color} />;
@@ -29,9 +32,12 @@ const MainTabNavigator = () => (
       tabBarInactiveTintColor: "#95a5a6",
       tabBarStyle: {
         backgroundColor: "#201b51",
+        height: 100,
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
       },
       tabBarLabelStyle: {
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: "bold",
       },
     })}
@@ -45,23 +51,34 @@ const MainTabNavigator = () => (
       name="AddItemTab"
       component={AddItemScreen}
       options={{
-        headerShown: true, // Display header for AddItemScreen
-        title: "Add Item", // Set the title for AddItemScreen
+        title: "Add Item",
         headerStyle: {
-          backgroundColor: "#201b51", // Set the background color for the header
+          backgroundColor: "#201b51",
+          borderBottomLeftRadius: 30,
+          borderBottomRightRadius: 30,
         },
         headerTitleStyle: {
-          color: "#fff", // Set the font color for the title
+          color: "#fff",
           fontWeight: "700",
         },
-        headerTitleAlign: "center", // Center the title within the header
+        headerTitleAlign: "center",
       }}
     />
     <Tab.Screen
       name="ProfileTab"
       component={ProfileScreen}
       options={{
-        headerShown: false,
+        title: "Profile",
+        headerStyle: {
+          backgroundColor: "#201b51",
+          borderBottomLeftRadius: 30,
+          borderBottomRightRadius: 30,
+        },
+        headerTitleStyle: {
+          color: "#fff",
+          fontWeight: "700",
+        },
+        headerTitleAlign: "center",
       }}
     />
   </Tab.Navigator>

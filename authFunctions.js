@@ -60,11 +60,18 @@ const handleLogin = async (email, password) => {
   }
 };
 
-const handleLogout = async () => {
+const handleLogout = async (navigation) => {
   try {
+    // Sign out the user
     await signOut(auth);
+
+    // Log success message
     console.log("User logged out");
+
+    // Navigate to the "Login" screen
+    navigation.navigate("Login");
   } catch (error) {
+    // Log and throw any errors that occur during logout
     console.error("Logout failed:", error.message);
     throw error;
   }

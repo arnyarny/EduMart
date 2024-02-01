@@ -19,6 +19,7 @@ const Homescreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredItems, setFilteredItems] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [activeCategory, setActiveCategory] = useState(null); // New state to track active category
 
   useEffect(() => {
     const itemsRef = ref(database, "items");
@@ -58,6 +59,7 @@ const Homescreen = ({ navigation }) => {
   const handleCategoryPress = (category) => {
     setSearchQuery(category);
     filterItems(category, items);
+    setActiveCategory(category); // Set the active category
   };
 
   const filterItems = (query, itemsArray) => {
@@ -74,7 +76,12 @@ const Homescreen = ({ navigation }) => {
 
   const handleSearch = (query) => {
     setSearchQuery(query);
-    filterItems(query, items);
+    if (query === "") {
+      setFilteredItems([]); // Reset filtered items when search query is empty
+      setActiveCategory(null); // Reset active category when search query is empty
+    } else {
+      filterItems(query, items);
+    }
   };
 
   if (loading) {
@@ -104,6 +111,7 @@ const Homescreen = ({ navigation }) => {
         value={searchQuery}
         style={styles.searchBar}
       />
+      <Text style={styles.categoriesText}>Categories</Text>
       <View style={styles.scrollContainer}>
         <ScrollView
           horizontal
@@ -114,9 +122,20 @@ const Homescreen = ({ navigation }) => {
             <TouchableOpacity
               key={index}
               onPress={() => handleCategoryPress(category)}
-              style={styles.categoryButton}
+              style={[
+                styles.categoryButton,
+                activeCategory === category && {
+                  backgroundColor: "#201b51",
+                },
+              ]}
             >
-              <Text>{category}</Text>
+              <Text
+                style={[
+                  { color: activeCategory === category ? "#fff" : "black" },
+                ]}
+              >
+                {category}
+              </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -163,11 +182,17 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "700",
     paddingTop: 30,
-    color: "#201b51",
+    color: "#000",
   },
   searchBar: {
     marginVertical: 16,
     backgroundColor: "#feb314",
+  },
+  categoriesText: {
+    fontSize: 25,
+    fontWeight: "bold",
+    color: "black",
+    marginVertical: 16,
   },
   card: {
     marginBottom: 16,
